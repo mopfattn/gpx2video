@@ -18,6 +18,15 @@ object ConfigChecker {
             return false
         }
 
+        config.inputFilterRegex?.let {
+            runCatching {
+                Regex(it)
+            }.onFailure {
+                LOGGER.severe("Invalid input filter regex: ${config.inputFilterRegex}: $it")
+                return false
+            }
+        }
+
         if (inputFile.isFile && !inputFile.name.endsWith(".zip", true)) {
             LOGGER.severe("Input file $inputFile is not a zip file")
             return false

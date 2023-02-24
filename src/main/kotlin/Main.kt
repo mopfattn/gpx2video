@@ -88,7 +88,8 @@ private fun imageGeneratorOptions(config: Config): ImageGenerator.Options {
 }
 
 private fun trackLoaderOptions(config: Config): TrackLoader.Options {
-    return TrackLoader.Options(sourceFile = File(config.input))
+    val regex = if (config.inputFilterRegex != null) Regex(config.inputFilterRegex) else null
+    return TrackLoader.Options(sourceFile = File(config.input), regex)
 }
 
 fun main(args: Array<String>) {

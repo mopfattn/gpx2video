@@ -8,6 +8,9 @@ data class Config(
     @SerialName("input")
     val input: String,
 
+    @SerialName("inputFilter")
+    val inputFilterRegex: String? = null,
+
     @SerialName("tmpDir")
     val tmpDir: String? = null,
 

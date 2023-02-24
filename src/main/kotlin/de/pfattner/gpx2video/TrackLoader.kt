@@ -23,7 +23,16 @@ class TrackLoader(private val options: Options) {
          * Source file (zip file) or directory containing gpx files.
          */
         val sourceFile: File,
+
+        /**
+         * Filter for matching filenames, if filter is null all files are used.
+         */
+        val filenameFilter: Regex?
     )
+
+    private fun matchesFilter(filename: String): Boolean {
+        return options.filenameFilter == null || options.filenameFilter.matches(filename)
+    }
 
     fun loadTracks(): List<GpxTrack> {
         val result = mutableListOf<GpxTrack>()
@@ -37,7 +46,7 @@ class TrackLoader(private val options: Options) {
             zipFile.use {
                 LOGGER.info("Importing tracks from ${options.sourceFile}")
                 zipFile.stream().forEach { entry ->
-                    if (entry.name.endsWith(".gpx", ignoreCase = true)) {
+                    if (entry.name.endsWith(".gpx", ignoreCase = true) && matchesFilter(entry.name)) {
                         zipFile.getInputStream(entry).use { input ->
                             loadTrack(entry.name, input)?.let {
                                 ++count
@@ -51,12 +60,12 @@ class TrackLoader(private val options: Options) {
         } else if (options.sourceFile.isDirectory) {
             // Find all GPX files within this directory
             LOGGER.info("Importing tracks from directory ${options.sourceFile}")
-            options.sourceFile.listFiles(FileFilter { it.name.endsWith(".gpx", true) })?.forEach { file ->
+            options.sourceFile.listFiles(FileFilter { it.name.endsWith(".gpx", true) && matchesFilter(it.name) })?.forEach { file ->
                 FileInputStream(file).use { input ->
                     loadTrack(file.name, input)?.let {
                         ++count
                         result.add(it)
-                        LOGGER.info("Loaded track #$count: ${it.name}")
+                        LOGGER.info("Loaded track #$count: ${it.name} (${file.name})")
                     }
                 }
             }

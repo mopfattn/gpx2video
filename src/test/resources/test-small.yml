@@ -1,4 +1,8 @@
+# input directory or zip file
 input: "src/test/resources"
+
+# define a regex to only include certain files
+inputFilter: ".*(motorbike1|motorbike2).*"
 
 # command to run after generating the images, e.g. invoke ffmpeg to generate a video
 runCommand: "ffmpeg -r 30 -f image2 -s ${width}x${height} -i ${tmpDirectory}/map_%05d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p -y video_${width}x${height}.mp4"

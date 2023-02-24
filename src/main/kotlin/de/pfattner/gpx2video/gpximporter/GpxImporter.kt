@@ -9,13 +9,6 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Suppress("PrivatePropertyName")
-private val DATE_FORMATS = arrayOf<DateFormat>(
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"),
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-)
-
 /**
  * Utility class for importing GPX files. See https://www.topografix.com/GPX/1/1/ for details.
  */
@@ -37,6 +30,16 @@ class GpxImporter {
     private var currentText = ""
 
     private var currentTrackPoint: GpxTrackPoint? = null
+
+    // SimpleDateFormat is not thread-safe, therefore store them into a ThreadLocal to allow
+    // parallel gpx imports
+    private val dateFormats = ThreadLocal<List<DateFormat>>().apply {
+        set(listOf(
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"),
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss"),
+        ))
+    }
 
     fun import(input: InputStream): GpxTrack {
         val parser = KXmlParser()
@@ -197,7 +200,7 @@ class GpxImporter {
                         statusStack.contains(GpxConstants.WPT))
                 ) {
                     var date: Date? = null
-                    for (dateFormat in DATE_FORMATS) {
+                    for (dateFormat in dateFormats.get()) {
                         try {
                             date = dateFormat.parse(currentText)
                             if (date != null) {

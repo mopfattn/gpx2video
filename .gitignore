@@ -9,4 +9,4 @@
 /build
 /captures
 .externalNativeBuild
-video_*.mp4
+*.mp4

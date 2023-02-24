@@ -4,10 +4,9 @@ import de.pfattner.gpx2video.gpximporter.GpxImporter
 import de.pfattner.gpx2video.gpximporter.GpxTrack
 import de.pfattner.gpx2video.gpximporter.GpxTrackPoint
 import de.pfattner.gpx2video.gpximporter.GpxTrackSegment
-import java.io.File
-import java.io.FileFilter
-import java.io.FileInputStream
-import java.io.InputStream
+import kotlinx.coroutines.*
+import java.io.*
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Logger
 import java.util.zip.ZipFile
 
@@ -34,40 +33,58 @@ class TrackLoader(private val options: Options) {
         return options.filenameFilter == null || options.filenameFilter.matches(filename)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun loadTracks(): List<GpxTrack> {
         val result = mutableListOf<GpxTrack>()
 
-        var count = 0
+        val count = AtomicInteger(0)
 
         if (options.sourceFile.isFile && options.sourceFile.name.endsWith(".zip", true)) {
             val zipFile = ZipFile(options.sourceFile)
 
-            // Import new entries
             zipFile.use {
+                val jobs = mutableListOf<Job>()
+
                 LOGGER.info("Importing tracks from ${options.sourceFile}")
                 zipFile.stream().forEach { entry ->
                     if (entry.name.endsWith(".gpx", ignoreCase = true) && matchesFilter(entry.name)) {
-                        zipFile.getInputStream(entry).use { input ->
-                            loadTrack(entry.name, input)?.let {
-                                ++count
-                                result.add(it)
-                                LOGGER.info("Loaded track #$count: ${it.name}")
+                        val job = GlobalScope.launch(Dispatchers.IO) {
+                            zipFile.getInputStream(entry).use { input ->
+                                loadTrack(entry.name, input)?.let {
+                                    val currentCount = count.addAndGet(1)
+                                    result.add(it)
+                                    LOGGER.info("Loaded track #$currentCount: ${it.name} (${entry.name})")
+                                }
                             }
                         }
+                        jobs.add(job)
                     }
+                }
+
+                runBlocking {
+                    jobs.joinAll()
                 }
             }
         } else if (options.sourceFile.isDirectory) {
+            val jobs = mutableListOf<Job>()
+
             // Find all GPX files within this directory
             LOGGER.info("Importing tracks from directory ${options.sourceFile}")
             options.sourceFile.listFiles(FileFilter { it.name.endsWith(".gpx", true) && matchesFilter(it.name) })?.forEach { file ->
-                FileInputStream(file).use { input ->
-                    loadTrack(file.name, input)?.let {
-                        ++count
-                        result.add(it)
-                        LOGGER.info("Loaded track #$count: ${it.name} (${file.name})")
+                val job = GlobalScope.launch(Dispatchers.IO) {
+                    FileInputStream(file).use { input ->
+                        loadTrack(file.name, input)?.let {
+                            val currentCount = count.addAndGet(1)
+                            result.add(it)
+                            LOGGER.info("Loaded track #$currentCount: ${it.name} (${file.name})")
+                        }
                     }
                 }
+                jobs.add(job)
+            }
+
+            runBlocking {
+                jobs.joinAll()
             }
         }
 

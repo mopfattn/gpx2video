@@ -121,10 +121,8 @@ class ImageGenerator(private val options: Options) {
             val filteredTrack = GpxTrack()
             filteredTrack.trackSegments.add(GpxTrackSegment())
             filteredTrack.trackSegments.first().trackPoints.addAll(filteredTrackPoints)
-//            val filteredTrack =
-//                track.copy(trackSegments = mutableListOf(TrackSegment(trackPoints = filteredTrackPoints.toMutableList())))
 
-            if (!filteredTrack.trackSegments.first().trackPoints.isEmpty()) {
+            if (filteredTrack.trackSegments.first().trackPoints.isNotEmpty()) {
                 result.add(filteredTrack)
             }
         }

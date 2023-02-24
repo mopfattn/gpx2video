@@ -3,18 +3,28 @@ package de.pfattner.gpx2video.config
 import java.io.File
 import java.util.logging.Logger
 
+@Suppress("PrivatePropertyName")
 private val LOGGER = Logger.getLogger("gpx2video")
 
-object ConfigChecker {
+object ConfigUtil {
+    /**
+     * Resolves some variables within a string, e.g.
+     */
+    fun resolveVariables(s: String): String {
+        return s
+            .replace("\${home}", System.getProperty("user.home"))
+            .replace("\${tmp}", System.getProperty("java.io.tmpdir"))
+    }
+
     /**
      * Checks whether the config contains valid parameters.
      *
      * @return true upon success.
      */
     fun checkConfig(config: Config): Boolean {
-        val inputFile = File(config.input)
+        val inputFile = File(resolveVariables(config.input))
         if (!inputFile.exists()) {
-            LOGGER.severe("Input file/directory $inputFile not found")
+            LOGGER.severe("Input file/directory $inputFile (${config.input}) not found")
             return false
         }
 
@@ -81,7 +91,7 @@ object ConfigChecker {
             return false
         }
 
-        if (!(config.map.zoom in 0..19)) {
+        if (config.map.zoom !in 0..19) {
             LOGGER.severe("Invalid zoom level: ${config.map.zoom} (must be in the range of [0..19])")
             return false
         }

@@ -3,7 +3,8 @@ import de.pfattner.gpx2video.ImageGenerator
 import de.pfattner.gpx2video.TrackLoader
 import de.pfattner.gpx2video.config.ColorParser
 import de.pfattner.gpx2video.config.Config
-import de.pfattner.gpx2video.config.ConfigChecker.checkConfig
+import de.pfattner.gpx2video.config.ConfigUtil
+import de.pfattner.gpx2video.config.ConfigUtil.checkConfig
 import de.pfattner.gpx2video.map.MapViewLatLng
 import org.apache.commons.cli.*
 import java.io.ByteArrayInputStream
@@ -89,7 +90,7 @@ private fun imageGeneratorOptions(config: Config): ImageGenerator.Options {
 
 private fun trackLoaderOptions(config: Config): TrackLoader.Options {
     val regex = if (config.inputFilterRegex != null) Regex(config.inputFilterRegex) else null
-    return TrackLoader.Options(sourceFile = File(config.input), regex)
+    return TrackLoader.Options(sourceFile = File(ConfigUtil.resolveVariables(config.input)), regex)
 }
 
 fun main(args: Array<String>) {

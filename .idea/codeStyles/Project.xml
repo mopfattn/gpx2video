@@ -1,0 +1,13 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <codeStyleSettings language="JAVA">
+      <option name="RIGHT_MARGIN" value="200" />
+    </codeStyleSettings>
+    <codeStyleSettings language="kotlin">
+      <option name="RIGHT_MARGIN" value="200" />
+      <indentOptions>
+        <option name="CONTINUATION_INDENT_SIZE" value="4" />
+      </indentOptions>
+    </codeStyleSettings>
+  </code_scheme>
+</component>

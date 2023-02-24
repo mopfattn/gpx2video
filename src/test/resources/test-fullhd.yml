@@ -1,0 +1,21 @@
+input: "src/test/resources"
+
+# command to run after generating the images, e.g. invoke ffmpeg to generate a video
+runCommand: "ffmpeg -r 30 -f image2 -s ${width}x${height} -i ${tmpDirectory}/map_%05d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p -y video_${width}x${height}.mp4"
+
+video:
+  maxDuration: 54000 # 54000 seconds -> 15 hours
+  highlightDuration: 300 # 300 seconds -> 5 minutes
+  step: 60 # 60 seconds -> 1 minute
+  fadedColor: 0x400040A0 # argb color as hex value
+  fadedWidth: 5 # width of line for 'old' track part
+  highlightedColor: 0xFF0077FF # argb color as hex value
+  highlightedWidth: 8 # width of line for highlighted track part
+  width: 1920
+  height: 1080
+
+map:
+  latitude: 46.4
+  longitude: 11.5
+  zoom: 8
+  invertColors: true # use a dark map
